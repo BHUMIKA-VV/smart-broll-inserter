@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import './FileUpload.css';
 
 function FileUpload({ onPlanGenerated, onError, onLoading, loading }) {
@@ -45,7 +46,7 @@ function FileUpload({ onPlanGenerated, onError, onLoading, loading }) {
     formData.append('render_video', renderVideo);
 
     try {
-      const response = await axios.post('/api/plan', formData, {
+      const response = await axios.post(`${API_BASE_URL}/api/plan`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
