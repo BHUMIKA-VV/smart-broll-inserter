@@ -19,7 +19,26 @@ from utils.video_renderer import VideoRenderer
 load_dotenv(override=True)
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS - allow all origins in production, or specify your Vercel domain
+# For production, update with your Vercel URL
+allowed_origins = [
+    "http://localhost:3000",
+    "https://smart-broll-inserter.vercel.app",  # Update with your Vercel URL
+    # Add more origins as needed
+]
+
+# Allow all origins for development, restrict in production
+if os.getenv('FLASK_ENV') == 'production':
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": allowed_origins,
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
+else:
+    CORS(app)  # Allow all in development
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -40,10 +59,15 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint for health checks."""
+    return jsonify({"status": "healthy", "service": "smart-broll-inserter-backend"}), 200
+
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint."""
-    return jsonify({"status": "healthy"})
+    return jsonify({"status": "healthy"}), 200
 
 
 @app.route('/api/plan', methods=['POST'])
@@ -161,5 +185,6 @@ def get_plan_file():
 
 
 if __name__ == '__main__':
-    port = int(os.getenv('FLASK_PORT', 5002))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    port = int(os.getenv('PORT', os.getenv('FLASK_PORT', 5002)))
+    debug = os.getenv('FLASK_ENV') != 'production'
+    app.run(debug=debug, host='0.0.0.0', port=port)
